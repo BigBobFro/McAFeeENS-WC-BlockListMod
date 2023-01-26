@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<epo:EPOPolicySchema xmlns:epo="mcafee-epo-policy" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<EPOPolicyVerInfo vermjr="5" vermin="10" verrel="0" verbld="0"/>
+<EPOPolicySettings name="Test - Block and allow::Settings (C896B31E-3383-48BD-A2CF-DA91FAB29943)" featureid="ENDP_WP_1000" categoryid="EWC_BlockAndAllowList" typeid="EWC_BlockAndAllowList" param_int="0" param_str="">
+<Section name="BlockAndAllowList">
+<Setting name="Action0" value="1"/>
+<Setting name="Action1" value="1"/>
+<Setting name="Action2" value="0"/>
+<Setting name="Action3" value="1"/>
+<Setting name="bPrecedenceOverProhibitLists" value="0"/>
+<Setting name="bTrack" value="1"/>
+<Setting name="szNote0" value=""/>
+<Setting name="szNote1" value=""/>
+<Setting name="szNote2" value=""/>
+<Setting name="szNote3" value=""/>
+<Setting name="szPolicyStamp" value="1535546072544"/>
+<Setting name="szSite0" value="outlook.live.com"/>
+<Setting name="szSite1" value="Google.com"/>
+<Setting name="szSite2" value="microsoft.com"/>
+<Setting name="szSite3" value="hotmail.com"/>
+<Setting name="szUnicodeSite0" value="outlook.live.com"/>
+<Setting name="szUnicodeSite1" value="Google.com"/>
+<Setting name="szUnicodeSite2" value="microsoft.com"/>
+<Setting name="szUnicodeSite3" value="hotmail.com"/>
+<Setting name="uiSiteCount" value="4"/>
+<Setting name="uiSiteResourceFileDownload" value="98"/>
+</Section>
+</EPOPolicySettings>
+<EPOPolicyObject name="Test - Block and allow" featureid="ENDP_WP_1000" categoryid="EWC_BlockAndAllowList" serverid="FDSWL17732" editflag="0" typeid="EWC_BlockAndAllowList">
+<description></description><PolicySettings>Test - Block and allow::Settings (C896B31E-3383-48BD-A2CF-DA91FAB29943)</PolicySettings>
+</EPOPolicyObject>
+</epo:EPOPolicySchema>
