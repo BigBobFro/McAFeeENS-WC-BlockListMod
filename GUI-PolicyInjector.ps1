@@ -70,10 +70,11 @@ function DDE #Do_De_Exit
     $SelectFileButton.add_click(    {<#Activate Windows File Dialog#>})
 
     $ReadInputFileButton            = New-Object System.Windows.Forms.Button
-    $ReadInputFileButton.Location
-    $ReadInputFileButton.Size
-    $ReadInputFileButton.TabStop
-    $ReadInputFileButton.TabIndex
+    $ReadInputFileButton.Location   = New-Object System.Drawing.Size(365,50)
+    $ReadInputFileButton.Size       = New-Object System.Drawing.Size(140,20)
+    $ReadInputFileButton.Text       = "Read Existing Policy File"
+    $ReadInputFileButton.TabStop    = $true
+    $ReadInputFileButton.TabIndex   = 3
     $ReadInputFileButton.add_click( {<#Read File stats#>})
 
     $OutputFileLabel                = New-Object System.Windows.Forms.Label
