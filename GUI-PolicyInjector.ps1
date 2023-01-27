@@ -102,6 +102,7 @@ function DDE #Do_De_Exit
     $MainWinObj.Controls.add($KwitButton)
     $MainWinObj.Controls.add($OutputFileLabel)
     $MainWinObj.Controls.add($OutputFileField)
+    $MainWinObj.Controls.add($ReadInputFileButton)
 
 # Activate Main window
     $MainWinObj.topmost = $true
