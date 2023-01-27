@@ -22,12 +22,17 @@ Update History
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") 						# Load .NET Assembly
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 				# Load .NET Assembly
 
+function DDE #Do_De_Exit
+{
+    $MainWinObj.close()
+}
+
 
 # Build GUI Window
 
     $MainWinObj                 = New-object System.Windows.Forms.Form
     $MainWinObj.Text            = "McAfee ENS-WC Policy Inject"
-    $MainWinObj.size            = New-Object System.Drawing.Size(550,250)
+    $MainWinObj.size            = New-Object System.Drawing.Size(550,300)
     $MainWinObj.KeyPreview      = $true
     $MainWinObj.StartPosition   = "CenterScreen"
 
@@ -40,8 +45,7 @@ Update History
     )
     $MainWinObj.add_keydown
     (   {if($_.keycode -eq "Escape")
-            {# Do Escape Things
-            }
+            {DDE}
         }
     )
 
@@ -65,19 +69,31 @@ Update History
     $SelectFileButton.TabIndex      = 2
     $SelectFileButton.add_click(    {<#Activate Windows File Dialog#>})
 
+    $ReadInputFileButton            = New-Object System.Windows.Forms.Button
+    $ReadInputFileButton.Location
+    $ReadInputFileButton.Size
+    $ReadInputFileButton.TabStop
+    $ReadInputFileButton.TabIndex
+    $ReadInputFileButton.add_click( {<#Read File stats#>})
+
     $OutputFileLabel                = New-Object System.Windows.Forms.Label
     $OutputFileLabel.Location       = New-Object System.Drawing.size(25,120)
-    $OutputFileLabel.Size           = New-Object System.Drawing.Size(170,40)
+    $OutputFileLabel.Size           = New-Object System.Drawing.Size(170,20)
     $OutputFileLabel.Text           = "Output File"
     
+    $OutputFileField                = New-Object System.Windows.Forms.TextBox
+    $OutputFileField.Location       = New-Object System.Drawing.size(205,120)
+    $OutputFileField.Size           = New-Object System.Drawing.Size(150,20)
+    $OutputFileField.TabStop        = $true
+    $OutputFileField.TabIndex       = 10
 
     $KwitButton                     = New-Object System.Windows.Forms.Button
-    $KwitButton.Location            = New-Object System.Drawing.Size(365,175)
+    $KwitButton.Location            = New-Object System.Drawing.Size(365,225)
     $KwitButton.Size                = New-Object System.Drawing.Size(140,20)
     $KwitButton.Text                = "Quit"
     $KwitButton.TabStop             = $true
     $KwitButton.TabIndex            = 99
-    $KwitButton.add_click(          {<#CLOSE AND QUIT#>})
+    $KwitButton.add_click(          {DDE})
 
 # Add Controls to Main window
     $MainWinObj.Controls.add($InputFileNameLabel)
@@ -85,6 +101,7 @@ Update History
     $MainWinObj.Controls.add($SelectFileButton)
     $MainWinObj.Controls.add($KwitButton)
     $MainWinObj.Controls.add($OutputFileLabel)
+    $MainWinObj.Controls.add($OutputFileField)
 
 # Activate Main window
     $MainWinObj.topmost = $true
