@@ -18,13 +18,41 @@ Update History
 2.0 - Complete rework of script to read in existing policy and output a new file
 
 #>
-
+param($debug = $false)
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") 						# Load .NET Assembly
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 				# Load .NET Assembly
+
+# Constants
+$srcPath = Split-Path -Path $MyInvocation.MyCommand.Path
+$ScriptStart = Get-Date
+$RunDate = Get-Date -format ddMMyyyy
+
+
+# Variables to NULL
+$fullinputfilepath      = $null
+[xml]$InputPolicyFile   = $null
 
 function DDE #Do_De_Exit
 {
     $MainWinObj.close()
+}
+
+function JustTheName
+{
+    param([string]$inputpath)
+    $rv = $inputpath.substring($($inputpath.lastindexof("\")) + 1,$($($inputpath.length)-$($inputpath.lastindexof("\")))-1)
+    RETURN $rv
+}
+
+Function ReadMcAfeePolicyFile
+{
+    # Opens XML File and returns object with IndexTable list in it
+    param([XML]$File)
+
+    # Insert HERE from work in other files
+
+
+    RETURN $RV  
 }
 
 
@@ -52,12 +80,12 @@ function DDE #Do_De_Exit
 # Create operational object
     $InputFileNameLabel             = New-Object System.Windows.Forms.Label
     $InputFileNameLabel.Location    = New-Object System.Drawing.size(25,25)
-    $InputFileNameLabel.Size        = New-Object System.Drawing.Size(170,20)
+    $InputFileNameLabel.Size        = New-Object System.Drawing.Size(120,20)
     $InputFileNameLabel.Text        = "Input filename (*.xml)"
 
     $InputFileNameField             = New-Object System.Windows.Forms.TextBox
-    $InputFileNameField.location    = New-Object System.Drawing.Size(205,25)
-    $InputFileNameField.size        = New-Object System.Drawing.Size(150,20)
+    $InputFileNameField.location    = New-Object System.Drawing.Size(155,25)
+    $InputFileNameField.size        = New-Object System.Drawing.Size(200,20)
     $InputFileNameField.TabStop     = $true
     $InputFileNameField.TabIndex    = 1
 
@@ -67,7 +95,17 @@ function DDE #Do_De_Exit
     $SelectFileButton.Text          = "Select Input File"
     $SelectFileButton.TabStop       = $true
     $SelectFileButton.TabIndex      = 2
-    $SelectFileButton.add_click(    {<#Activate Windows File Dialog#>})
+    $SelectFileButton.add_click(    {
+                                    <#Activate Windows File Dialog#>
+                                    $OpenFileDialog                     = New-Object System.Windows.Forms.OpenFileDialog
+                                    $OpenFileDialog.initialDirectory    = $srcPath
+                                    $OpenFileDialog.Filter              = "eXtensible Markup Language (*.xml)| *.xml"
+                                    [void] $OpenFileDialog.ShowDialog()
+                                    $FullInputFilePath = $OpenFileDialog.FileName
+                                    $InputFileNameField.text = JustTheName($FullInputFilePath)
+                                    $OutputFileField.text = "$($InputFileNameField.Text.substring(0,$blah.LastIndexOf(".")))_$rundate.XML"
+                                    $InputFileNameField.Enabled = $false
+                                    })
 
     $ReadInputFileButton            = New-Object System.Windows.Forms.Button
     $ReadInputFileButton.Location   = New-Object System.Drawing.Size(365,50)
@@ -75,16 +113,19 @@ function DDE #Do_De_Exit
     $ReadInputFileButton.Text       = "Read Existing Policy File"
     $ReadInputFileButton.TabStop    = $true
     $ReadInputFileButton.TabIndex   = 3
-    $ReadInputFileButton.add_click( {<#Read File stats#>})
+    $ReadInputFileButton.add_click( {<#Read File stats#>
+                                    $InputPolicyFile = Get-Content $fullinputfilepath
+                                    $balist = ReadMcAfeePolicyFile($InputPolicyFile)
+                                    })
 
     $OutputFileLabel                = New-Object System.Windows.Forms.Label
     $OutputFileLabel.Location       = New-Object System.Drawing.size(25,120)
-    $OutputFileLabel.Size           = New-Object System.Drawing.Size(170,20)
+    $OutputFileLabel.Size           = New-Object System.Drawing.Size(120,20)
     $OutputFileLabel.Text           = "Output File"
     
     $OutputFileField                = New-Object System.Windows.Forms.TextBox
-    $OutputFileField.Location       = New-Object System.Drawing.size(205,120)
-    $OutputFileField.Size           = New-Object System.Drawing.Size(150,20)
+    $OutputFileField.Location       = New-Object System.Drawing.size(155,120)
+    $OutputFileField.Size           = New-Object System.Drawing.Size(200,20)
     $OutputFileField.TabStop        = $true
     $OutputFileField.TabIndex       = 10
 
@@ -113,3 +154,4 @@ function DDE #Do_De_Exit
 
 
 
+write-host "this is blah: $blah"
