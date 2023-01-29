@@ -135,12 +135,12 @@ Function ReadMcAfeePolicyFile
                                     $OpenFileDialog.Filter              = "eXtensible Markup Language (*.xml)| *.xml"
                                     [void] $OpenFileDialog.ShowDialog()
                                     $FullInputFilePath = $OpenFileDialog.filename
-                                    if($debug){write-host "Input File: $FullInputFilePath"}
-                                    $LastDialogPath = $FullInputFilePath.substring(0,$FullInputFilePath.lastindexof("\"))
-                                    $InputPolicyPathLabel.text = $LastDialogPath
-                                    $InputPolicyFileField.text = JustTheName($FullInputFilePath)
-                                    $OutputPolictFileField.text = "$($InputPolicyFileField.Text.substring(0,$InputPolicyFileField.text.LastIndexOf(".")))_$rundate.XML"
-                                    $InputPolicyFileField.Enabled = $false
+                                    if($debug)  {write-host "Input File: $FullInputFilePath"}
+                                    $LastDialogPath                     = $FullInputFilePath.substring(0,$FullInputFilePath.lastindexof("\"))
+                                    $InputPolicyPathLabel.text          = $LastDialogPath
+                                    $InputPolicyFileField.text          = JustTheName($FullInputFilePath)
+                                    $OutputPolictFileField.text         = "$($InputPolicyFileField.Text.substring(0,$InputPolicyFileField.text.LastIndexOf(".")))_$rundate.XML"
+                                    $InputPolicyFileField.Enabled       = $false
                                     })
 
     $InputPolicyPathLabel               = New-Object System.Windows.Forms.Label
@@ -156,11 +156,19 @@ Function ReadMcAfeePolicyFile
     $ReadPolictInputButton.TabStop      = $true
     $ReadPolictInputButton.TabIndex     = 3
     $ReadPolictInputButton.add_click( {<#Read File stats#>
-                                    $InputPolicyFile = Get-Content "$($InputPolicyPathLabel.text)\$($InputPolicyFileField.text)"
-                                    $balist = ReadMcAfeePolicyFile($InputPolicyFile)
-                                    if($debug){write-host "Total sites found in BAlist: $($balist.totalsites)"}
-                                    #TODO Register the total sites on the window somewhere
+                                    $InputPolicyFile                    = Get-Content "$($InputPolicyPathLabel.text)\$($InputPolicyFileField.text)"
+                                    $balist                             = ReadMcAfeePolicyFile($InputPolicyFile)
+                                    if($debug)                          {write-host "Total sites found in BAlist: $($balist.totalsites)"}
+                                    $InputPolicySitesLabel.Text         = "Total Sites found in policy file: $($balist.TotalSites)"
                                     })
+
+#TODO Add list of sites to inject to policy CVS file input
+#TODO Create inverted BAlist, keyed on site, or some other way of dealing with conflicts
+
+    $InputPolicySitesLabel              = New-Object System.Windows.Forms.Label
+    $InputPolicySitesLabel.location     = New-Object system.drawing.size(185,75)
+    $InputPolicySitesLabel.Size         = New-object System.Drawing.size(350,20)
+    $InputPolicySitesLabel.Text         = ""
 
     $OutputPolicyFileLabel              = New-Object System.Windows.Forms.Label
     $OutputPolicyFileLabel.Location     = New-Object System.Drawing.size(25,180)
@@ -190,6 +198,7 @@ Function ReadMcAfeePolicyFile
     $MainWinObj.Controls.add($OutputPolictFileField)
     $MainWinObj.Controls.add($ReadPolictInputButton)
     $MainWinObj.Controls.add($InputPolicyPathLabel)
+    $MainWinObj.Controls.Add($InputPolicySitesLabel)
 
 # Activate Main window
     $MainWinObj.topmost = $true
