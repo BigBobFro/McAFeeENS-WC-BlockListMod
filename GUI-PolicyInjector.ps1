@@ -18,7 +18,7 @@ Update History
 2.0 - Complete rework of script to read in existing policy and output a new file
 
 #>
-param($debug = $false)
+param($debug = $true)
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") 						# Load .NET Assembly
 [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 				# Load .NET Assembly
 
@@ -28,9 +28,10 @@ $ScriptStart = Get-Date
 $RunDate = Get-Date -format ddMMyyyy
 
 
-# Variables to NULL
+# Variables to NULL or Reset
 $fullinputfilepath      = $null
 [xml]$InputPolicyFile   = $null
+$LastDialogPath         = $srcPath
 
 function DDE #Do_De_Exit
 {
@@ -46,10 +47,42 @@ function JustTheName
 
 Function ReadMcAfeePolicyFile
 {
-    # Opens XML File and returns object with IndexTable list in it
-    param([XML]$File)
+    # Opens XML File and returns object with HashTable list object
+    param([XML]$InFile)
 
-    # Insert HERE from work in other files
+    $balist = $($InFile.epopolicyschema.EPOpolicysettings.section|?{$_.name -eq "BlockAndAllowList"}).Setting
+
+    $list = @{}
+    foreach ($setting in $balist){
+        $props      = @{}
+        [int]$ordinal    = $null
+        if ($($setting.name) -like "Action*") {
+            [int]$ordinal = $setting.name.substring(6,$($setting.name.length)-6)
+            $props = @{
+                "Action"    = $setting.value
+                "Note"      = $null
+                "Site"      = $null
+            }
+            $list.add($ordinal,$props)
+        }
+        elseif ($($setting.name -like "szNote*")) {
+            $ordinal = $setting.name.substring(6,$($setting.name.length)-6)
+            $($list[$ordinal]).Note = $setting.value
+        }
+        elseif ($($setting.name -like "szSite*")) {
+            $ordinal = $setting.name.substring(6,$($setting.name.length)-6)
+            $($list[$ordinal]).Site = $setting.value
+        }
+        elseif($($setting.name -eq "uiSiteCount")){
+            $totalsites = $setting.value
+        }
+        #else #DO NOTHING
+    }
+
+    $rv = @{
+        "TotalSites"    = $totalsites
+        "List"          = $list
+    }
 
 
     RETURN $RV  
@@ -60,7 +93,7 @@ Function ReadMcAfeePolicyFile
 
     $MainWinObj                 = New-object System.Windows.Forms.Form
     $MainWinObj.Text            = "McAfee ENS-WC Policy Inject"
-    $MainWinObj.size            = New-Object System.Drawing.Size(550,300)
+    $MainWinObj.size            = New-Object System.Drawing.Size(600,450)
     $MainWinObj.KeyPreview      = $true
     $MainWinObj.StartPosition   = "CenterScreen"
 
@@ -78,80 +111,90 @@ Function ReadMcAfeePolicyFile
     )
 
 # Create operational object
-    $InputFileNameLabel             = New-Object System.Windows.Forms.Label
-    $InputFileNameLabel.Location    = New-Object System.Drawing.size(25,25)
-    $InputFileNameLabel.Size        = New-Object System.Drawing.Size(120,20)
-    $InputFileNameLabel.Text        = "Input filename (*.xml)"
+    $InputPolicyFileLabel               = New-Object System.Windows.Forms.Label
+    $InputPolicyFileLabel.Location      = New-Object System.Drawing.size(25,25)
+    $InputPolicyFileLabel.Size          = New-Object System.Drawing.Size(155,20)
+    $InputPolicyFileLabel.Text          = "Input Policy filename (*.xml)"
 
-    $InputFileNameField             = New-Object System.Windows.Forms.TextBox
-    $InputFileNameField.location    = New-Object System.Drawing.Size(155,25)
-    $InputFileNameField.size        = New-Object System.Drawing.Size(200,20)
-    $InputFileNameField.TabStop     = $true
-    $InputFileNameField.TabIndex    = 1
+    $InputPolicyFileField               = New-Object System.Windows.Forms.TextBox
+    $InputPolicyFileField.location      = New-Object System.Drawing.Size(185,25)
+    $InputPolicyFileField.size          = New-Object System.Drawing.Size(200,20)
+    $InputPolicyFileField.TabStop       = $true
+    $InputPolicyFileField.TabIndex      = 1
 
-    $SelectFileButton               = New-Object System.Windows.Forms.Button
-    $SelectFileButton.Location      = New-Object System.Drawing.Size(365,25)
-    $SelectFileButton.Size          = New-Object System.Drawing.Size(140,20)
-    $SelectFileButton.Text          = "Select Input File"
-    $SelectFileButton.TabStop       = $true
-    $SelectFileButton.TabIndex      = 2
-    $SelectFileButton.add_click(    {
+    $SelectPolicyFileButton             = New-Object System.Windows.Forms.Button
+    $SelectPolicyFileButton.Location    = New-Object System.Drawing.Size(395,25)
+    $SelectPolicyFileButton.Size        = New-Object System.Drawing.Size(140,20)
+    $SelectPolicyFileButton.Text        = "Select Input Policy File"
+    $SelectPolicyFileButton.TabStop     = $true
+    $SelectPolicyFileButton.TabIndex    = 2
+    $SelectPolicyFileButton.add_click(    {
                                     <#Activate Windows File Dialog#>
                                     $OpenFileDialog                     = New-Object System.Windows.Forms.OpenFileDialog
-                                    $OpenFileDialog.initialDirectory    = $srcPath
+                                    $OpenFileDialog.initialDirectory    = $LastDialogPath
                                     $OpenFileDialog.Filter              = "eXtensible Markup Language (*.xml)| *.xml"
                                     [void] $OpenFileDialog.ShowDialog()
-                                    $FullInputFilePath = $OpenFileDialog.FileName
-                                    $InputFileNameField.text = JustTheName($FullInputFilePath)
-                                    $OutputFileField.text = "$($InputFileNameField.Text.substring(0,$blah.LastIndexOf(".")))_$rundate.XML"
-                                    $InputFileNameField.Enabled = $false
+                                    $FullInputFilePath = $OpenFileDialog.filename
+                                    if($debug){write-host "Input File: $FullInputFilePath"}
+                                    $LastDialogPath = $FullInputFilePath.substring(0,$FullInputFilePath.lastindexof("\"))
+                                    $InputPolicyPathLabel.text = $LastDialogPath
+                                    $InputPolicyFileField.text = JustTheName($FullInputFilePath)
+                                    $OutputPolictFileField.text = "$($InputPolicyFileField.Text.substring(0,$InputPolicyFileField.text.LastIndexOf(".")))_$rundate.XML"
+                                    $InputPolicyFileField.Enabled = $false
                                     })
 
-    $ReadInputFileButton            = New-Object System.Windows.Forms.Button
-    $ReadInputFileButton.Location   = New-Object System.Drawing.Size(365,50)
-    $ReadInputFileButton.Size       = New-Object System.Drawing.Size(140,20)
-    $ReadInputFileButton.Text       = "Read Existing Policy File"
-    $ReadInputFileButton.TabStop    = $true
-    $ReadInputFileButton.TabIndex   = 3
-    $ReadInputFileButton.add_click( {<#Read File stats#>
-                                    $InputPolicyFile = Get-Content $fullinputfilepath
-                                    $balist = ReadMcAfeePolicyFile($InputPolicyFile)
-                                    })
-
-    $OutputFileLabel                = New-Object System.Windows.Forms.Label
-    $OutputFileLabel.Location       = New-Object System.Drawing.size(25,120)
-    $OutputFileLabel.Size           = New-Object System.Drawing.Size(120,20)
-    $OutputFileLabel.Text           = "Output File"
+    $InputPolicyPathLabel               = New-Object System.Windows.Forms.Label
+    $InputPolicyPathLabel.Location      = New-Object system.drawing.size(185,50)
+    $InputPolicyPathLabel.Size          = New-Object System.Drawing.Size(350,20)
+    $InputPolicyPathLabel.Text          = ""
     
-    $OutputFileField                = New-Object System.Windows.Forms.TextBox
-    $OutputFileField.Location       = New-Object System.Drawing.size(155,120)
-    $OutputFileField.Size           = New-Object System.Drawing.Size(200,20)
-    $OutputFileField.TabStop        = $true
-    $OutputFileField.TabIndex       = 10
 
-    $KwitButton                     = New-Object System.Windows.Forms.Button
-    $KwitButton.Location            = New-Object System.Drawing.Size(365,225)
-    $KwitButton.Size                = New-Object System.Drawing.Size(140,20)
-    $KwitButton.Text                = "Quit"
-    $KwitButton.TabStop             = $true
-    $KwitButton.TabIndex            = 99
-    $KwitButton.add_click(          {DDE})
+    $ReadPolictInputButton              = New-Object System.Windows.Forms.Button
+    $ReadPolictInputButton.Location     = New-Object System.Drawing.Size(395,75)
+    $ReadPolictInputButton.Size         = New-Object System.Drawing.Size(140,20)
+    $ReadPolictInputButton.Text         = "Read Existing Policy File"
+    $ReadPolictInputButton.TabStop      = $true
+    $ReadPolictInputButton.TabIndex     = 3
+    $ReadPolictInputButton.add_click( {<#Read File stats#>
+                                    $InputPolicyFile = Get-Content "$($InputPolicyPathLabel.text)\$($InputPolicyFileField.text)"
+                                    $balist = ReadMcAfeePolicyFile($InputPolicyFile)
+                                    if($debug){write-host "Total sites found in BAlist: $($balist.totalsites)"}
+                                    #TODO Register the total sites on the window somewhere
+                                    })
+
+    $OutputPolicyFileLabel              = New-Object System.Windows.Forms.Label
+    $OutputPolicyFileLabel.Location     = New-Object System.Drawing.size(25,180)
+    $OutputPolicyFileLabel.Size         = New-Object System.Drawing.Size(155,20)
+    $OutputPolicyFileLabel.Text         = "Output Policy File"
+    
+    $OutputPolictFileField              = New-Object System.Windows.Forms.TextBox
+    $OutputPolictFileField.Location     = New-Object System.Drawing.size(185,180)
+    $OutputPolictFileField.Size         = New-Object System.Drawing.Size(200,20)
+    $OutputPolictFileField.TabStop      = $true
+    $OutputPolictFileField.TabIndex     = 10
+
+    $KwitButton                         = New-Object System.Windows.Forms.Button
+    $KwitButton.Location                = New-Object System.Drawing.Size(395,225)
+    $KwitButton.Size                    = New-Object System.Drawing.Size(140,20)
+    $KwitButton.Text                    = "Quit"
+    $KwitButton.TabStop                 = $true
+    $KwitButton.TabIndex                = 99
+    $KwitButton.add_click(              {DDE})
 
 # Add Controls to Main window
-    $MainWinObj.Controls.add($InputFileNameLabel)
-    $MainWinObj.Controls.add($InputFileNameField)
-    $MainWinObj.Controls.add($SelectFileButton)
+    $MainWinObj.Controls.add($InputPolicyFileLabel)
+    $MainWinObj.Controls.add($InputPolicyFileField)
+    $MainWinObj.Controls.add($SelectPolicyFileButton)
     $MainWinObj.Controls.add($KwitButton)
-    $MainWinObj.Controls.add($OutputFileLabel)
-    $MainWinObj.Controls.add($OutputFileField)
-    $MainWinObj.Controls.add($ReadInputFileButton)
+    $MainWinObj.Controls.add($OutputPolicyFileLabel)
+    $MainWinObj.Controls.add($OutputPolictFileField)
+    $MainWinObj.Controls.add($ReadPolictInputButton)
+    $MainWinObj.Controls.add($InputPolicyPathLabel)
 
 # Activate Main window
     $MainWinObj.topmost = $true
-    $MainWinObj.add_shown({$MainWinObj.Activate();$InputFileNameField.focus()})
+    $MainWinObj.add_shown({$MainWinObj.Activate();$InputPolicyFileField.focus()})
     [void] $MainWinObj.ShowDialog()
 
 
 
-
-write-host "this is blah: $blah"
