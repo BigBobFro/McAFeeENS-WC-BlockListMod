@@ -237,6 +237,9 @@ Function ReadMcAfeePolicyFile
     $DoDeBizniz.TabStop                 = $true
     $DoDeBizniz.TabIndex                = 50
     $DoDeBizniz.Text                    = "YOU CAN DO EET!!"
+    $DoDeBizniz.add_click(              {
+                                        <#Do the heavy lifting and output to file #>
+    })
 
     $KwitButton                         = New-Object System.Windows.Forms.Button
     $KwitButton.Location                = New-Object System.Drawing.Size(395,275)
