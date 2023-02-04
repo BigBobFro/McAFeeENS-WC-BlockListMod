@@ -170,19 +170,76 @@ Function ReadMcAfeePolicyFile
     $InputPolicySitesLabel.Size         = New-object System.Drawing.size(350,20)
     $InputPolicySitesLabel.Text         = ""
 
+    $InputSiteAddLabel                  = New-object System.Windows.Forms.Label
+    $InputSiteAddLabel.Location         = New-Object System.Drawing.Size(25,120)
+    $InputSiteAddLabel.Size             = New-Object System.Drawing.Size(155,20)
+    $InputSiteAddLabel.Text             = "Input site list (*.csv):"
+
+    $InputSiteAddField                  = New-Object System.Windows.Forms.Textbox
+    $InputSiteAddField.Location         = New-Object System.Drawing.Size(185,120)
+    $InputSiteAddField.Size             = New-Object System.Drawing.Size(200,20)
+    $InputSiteAddField.TabStop          = $true
+    $InputSiteAddField.TabIndex         = 4
+
+    $InputSiteAddFullPath               = New-Object System.Windows.Forms.Label
+    $InputSiteAddFullPath.location      = New-Object System.Drawing.size(185,145)
+    $InputSiteAddFullPath.Size          = New-Object System.Drawing.size(350,20)
+    $InputSiteAddFullPath.Text          = ""
+
+    $SelectSiteAddFile                  = New-Object System.Windows.Forms.Button
+    $SelectSiteAddFile.location         = New-Object System.Drawing.size(395,120)
+    $SelectSiteAddFile.Size             = New-Object System.Drawing.size(140,20)
+    $SelectSiteAddFile.TabIndex         = $true
+    $SelectSiteAddFile.TabIndex         = 5
+    $SelectSiteAddFile.text             = "Select Site Add File"
+    $SelectSiteAddFile.add_click(       {<# Select CSV File of sites to add #>
+                                        $OpenFileDialog                     = New-Object System.Windows.Forms.OpenFileDialog
+                                        $OpenFileDialog.initialDirectory    = $LastDialogPath
+                                        $OpenFileDialog.Filter              = "Comma Separated Values (*.CSV)| *.csv"
+                                        [void] $OpenFileDialog.ShowDialog()
+                                        $SiteAddFilePath = $OpenFileDialog.filename
+                                        $InputSiteAddFullPath.text = $SiteAddFilePath.substring(0,$SiteAddFilePath.lastindexof("\"))
+                                        $InputSiteAddField.text = JustTheName($SiteAddFilePath)
+    })
+
+    $InputSites2AddLabel                = New-Object System.Windows.Forms.Label
+    $InputSites2AddLabel.Location       = New-Object System.Drawing.Size(185,170)
+    $InputSites2AddLabel.size           = New-Object System.Drawing.Size(150,20)
+    $InputSites2AddLabel.Text           = ""
+
+    $ReadInCSVFileButton                = New-Object System.Windows.Forms.Button
+    $ReadInCSVFileButton.Location       = New-Object System.Drawing.Size(395,170)
+    $ReadInCSVFileButton.Size           = New-Object System.Drawing.Size(140,20)
+    $ReadInCSVFileButton.Text           = "Read CSV File"
+    $ReadInCSVFileButton.TabStop        = $true
+    $ReadInCSVFileButton.TabIndex       = 6
+    $ReadInCSVFileButton.add_click(     {
+                                        <# READ CSV FILE#>
+                                        $inputCSV = Import-Csv "$($InputSiteAddFullPath.text)/$($InputSiteAddField.text)" -header "site","action"
+                                        $InputSites2AddLabel.text = $inputCSV.count
+    })
+
+
     $OutputPolicyFileLabel              = New-Object System.Windows.Forms.Label
-    $OutputPolicyFileLabel.Location     = New-Object System.Drawing.size(25,180)
+    $OutputPolicyFileLabel.Location     = New-Object System.Drawing.size(25,230)
     $OutputPolicyFileLabel.Size         = New-Object System.Drawing.Size(155,20)
     $OutputPolicyFileLabel.Text         = "Output Policy File"
     
     $OutputPolictFileField              = New-Object System.Windows.Forms.TextBox
-    $OutputPolictFileField.Location     = New-Object System.Drawing.size(185,180)
+    $OutputPolictFileField.Location     = New-Object System.Drawing.size(185,230)
     $OutputPolictFileField.Size         = New-Object System.Drawing.Size(200,20)
     $OutputPolictFileField.TabStop      = $true
     $OutputPolictFileField.TabIndex     = 10
 
+    $DoDeBizniz                         = New-Object System.Windows.Forms.Button
+    $DoDeBizniz.Location                = New-Object System.Drawing.Size(395,230)
+    $DoDeBizniz.Size                    = New-Object System.Drawing.Size(140,20)
+    $DoDeBizniz.TabStop                 = $true
+    $DoDeBizniz.TabIndex                = 50
+    $DoDeBizniz.Text                    = "YOU CAN DO EET!!"
+
     $KwitButton                         = New-Object System.Windows.Forms.Button
-    $KwitButton.Location                = New-Object System.Drawing.Size(395,225)
+    $KwitButton.Location                = New-Object System.Drawing.Size(395,275)
     $KwitButton.Size                    = New-Object System.Drawing.Size(140,20)
     $KwitButton.Text                    = "Quit"
     $KwitButton.TabStop                 = $true
@@ -199,6 +256,13 @@ Function ReadMcAfeePolicyFile
     $MainWinObj.Controls.add($ReadPolictInputButton)
     $MainWinObj.Controls.add($InputPolicyPathLabel)
     $MainWinObj.Controls.Add($InputPolicySitesLabel)
+    $MainWinObj.Controls.Add($InputSiteAddLabel)
+    $MainWinObj.Controls.Add($InputSiteAddField)
+    $MainWinObj.Controls.add($SelectSiteAddFile)
+    $MainWinObj.Controls.Add($InputSiteAddFullPath)
+    $MainWinObj.Controls.Add($InputSites2AddLabel)
+    $MainWinObj.Controls.Add($ReadInCSVFileButton)
+    $MainWinObj.Controls.Add($DoDeBizniz)
 
 # Activate Main window
     $MainWinObj.topmost = $true
