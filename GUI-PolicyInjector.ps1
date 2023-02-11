@@ -88,6 +88,55 @@ Function ReadMcAfeePolicyFile
     RETURN $RV  
 }
 
+Function Do_De_BizNitz
+{
+    param($OG_policy = $null, $In_list = $null)
+    # Check that both inputs are not null (cannot continue without)
+    if($($null -eq $OG_policy) -or $($null -eq $In_list)){
+        # Cannot Continue
+        # TODO: Create error window to state such
+        break
+    }
+
+    # TODO: Generate window to capture Note comment for new entries
+    $newEntriesNote = "$rundate-Testing Something"
+
+    # create a quicklist to check for duplicates
+    $dupeCheckList = @{}
+    $ordinal = 1
+    foreach($item in $($balist.list))
+    {
+        # Check for null sites in policy
+        if($null -ne $item.site){
+            $dupeCheckList.add($item.site,$item.action) 
+        }
+        $ordinal++
+    }
+
+    # Ratchet through new items list
+    foreach($newItem in $InputCSV){
+        #Check for duplicate
+        if($dupeCheckList[$newitem.site]){
+            #Duplicate Exists
+            if($($($dupeCheckList[$newitem.site]).action) -ne $newItem.action){
+                # Update the balist with changed action
+                $($balist.List.Values | ?{$_.site -eq $($newItem.site)}).action = $newItem.action
+            }
+        }
+        else {
+            <# Not a duplicate; add to policy#>
+            $total = $balist.List.Count
+            $entry = @{
+                "site"      = $newitem.site
+                "action"    = $newItem.action
+                "note"      = $newEntriesNote      #TODO: Come up with an entry
+            }
+            $balist.List.add($total,$entry)
+        }
+    }
+
+}
+
 
 # Build GUI Window
 
@@ -141,7 +190,7 @@ Function ReadMcAfeePolicyFile
                                     $InputPolicyFileField.text          = JustTheName($FullInputFilePath)
                                     $OutputPolictFileField.text         = "$($InputPolicyFileField.Text.substring(0,$InputPolicyFileField.text.LastIndexOf(".")))_$rundate.XML"
                                     $InputPolicyFileField.Enabled       = $false
-                                    })
+    })
 
     $InputPolicyPathLabel               = New-Object System.Windows.Forms.Label
     $InputPolicyPathLabel.Location      = New-Object system.drawing.size(185,50)
@@ -155,15 +204,12 @@ Function ReadMcAfeePolicyFile
     $ReadPolictInputButton.Text         = "Read Existing Policy File"
     $ReadPolictInputButton.TabStop      = $true
     $ReadPolictInputButton.TabIndex     = 3
-    $ReadPolictInputButton.add_click( {<#Read File stats#>
-                                    $InputPolicyFile                    = Get-Content "$($InputPolicyPathLabel.text)\$($InputPolicyFileField.text)"
-                                    $balist                             = ReadMcAfeePolicyFile($InputPolicyFile)
-                                    if($debug)                          {write-host "Total sites found in BAlist: $($balist.totalsites)"}
-                                    $InputPolicySitesLabel.Text         = "Total Sites found in policy file: $($balist.TotalSites)"
-                                    })
-
-#TODO Add list of sites to inject to policy CVS file input
-#TODO Create inverted BAlist, keyed on site, or some other way of dealing with conflicts
+    $ReadPolictInputButton.add_click(   {<#Read File stats#>
+                                        $InputPolicyFile                    = Get-Content "$($InputPolicyPathLabel.text)\$($InputPolicyFileField.text)"
+                                        $balist                             = ReadMcAfeePolicyFile($InputPolicyFile)
+                                        if($debug)                          {write-host "Total sites found in BAlist: $($balist.totalsites)"}
+                                        $InputPolicySitesLabel.Text         = "Total Sites found in policy file: $($balist.TotalSites)"
+    })
 
     $InputPolicySitesLabel              = New-Object System.Windows.Forms.Label
     $InputPolicySitesLabel.location     = New-Object system.drawing.size(185,75)
@@ -197,9 +243,9 @@ Function ReadMcAfeePolicyFile
                                         $OpenFileDialog.initialDirectory    = $LastDialogPath
                                         $OpenFileDialog.Filter              = "Comma Separated Values (*.CSV)| *.csv"
                                         [void] $OpenFileDialog.ShowDialog()
-                                        $SiteAddFilePath = $OpenFileDialog.filename
-                                        $InputSiteAddFullPath.text = $SiteAddFilePath.substring(0,$SiteAddFilePath.lastindexof("\"))
-                                        $InputSiteAddField.text = JustTheName($SiteAddFilePath)
+                                        $SiteAddFilePath                    = $OpenFileDialog.filename
+                                        $InputSiteAddFullPath.text          = $SiteAddFilePath.substring(0,$SiteAddFilePath.lastindexof("\"))
+                                        $InputSiteAddField.text             = JustTheName($SiteAddFilePath)
     })
 
     $InputSites2AddLabel                = New-Object System.Windows.Forms.Label
@@ -213,8 +259,7 @@ Function ReadMcAfeePolicyFile
     $ReadInCSVFileButton.Text           = "Read CSV File"
     $ReadInCSVFileButton.TabStop        = $true
     $ReadInCSVFileButton.TabIndex       = 6
-    $ReadInCSVFileButton.add_click(     {
-                                        <# READ CSV FILE#>
+    $ReadInCSVFileButton.add_click(     {<# READ CSV FILE#>
                                         $inputCSV = Import-Csv "$($InputSiteAddFullPath.text)/$($InputSiteAddField.text)" -header "site","action"
                                         $InputSites2AddLabel.text = $inputCSV.count
     })
@@ -239,6 +284,8 @@ Function ReadMcAfeePolicyFile
     $DoDeBizniz.Text                    = "YOU CAN DO EET!!"
     $DoDeBizniz.add_click(              {
                                         <#Do the heavy lifting and output to file #>
+                                        # OG policy($balist) then In List($inputCSV)
+                                        $NewBAlist = Do_De_BizNitz $balist $inputCSV
     })
 
     $KwitButton                         = New-Object System.Windows.Forms.Button
